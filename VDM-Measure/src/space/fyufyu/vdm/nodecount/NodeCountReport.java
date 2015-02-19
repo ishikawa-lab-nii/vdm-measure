@@ -2,9 +2,12 @@ package space.fyufyu.vdm.nodecount;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.overture.ast.node.INode;
 
+import space.fyufyu.vdm.util.NodeInfo;
 import space.fyufyu.vdm.util.NodeType;
 
 /**
@@ -20,11 +23,45 @@ public class NodeCountReport {
 	/* Remember the count for each node type */
 	private HashMap<NodeType, MapCounter> counters = new HashMap<NodeType, MapCounter>();
 
+	private List<NodeCountReport> children = new LinkedList<>();
+	
+	private boolean isForDirectory = false;
+	
+	/**
+	 * Constructor for a single file case
+	 * 
+	 * @param targetFile
+	 */
 	NodeCountReport(File targetFile) {
 		this.targetFile = targetFile;
-		counters.put(NodeType.DEF, new MapCounter());
-		counters.put(NodeType.EXP, new MapCounter());
-		counters.put(NodeType.STM, new MapCounter());
+		for (NodeType t : NodeInfo.ALL_NODE_TYPES) {
+			counters.put(t, new MapCounter());
+		}
+	}
+
+	/**
+	 * Constructor for a directory case
+	 * 
+	 * @param targetFile
+	 * @param children
+	 */
+	NodeCountReport(File targetFile,
+			List<NodeCountReport> children) {
+		this.targetFile = targetFile;
+		for(NodeCountReport child: children){
+			if(!child.isEmpty()){
+				this.children.add(child);
+			}
+		}
+		this.isForDirectory = true;
+		
+		for (NodeType t : NodeInfo.ALL_NODE_TYPES) {
+			MapCounter counter = new MapCounter();
+			for(NodeCountReport report: this.children){
+				counter.merge(report.getCounter(t));
+			}
+			counters.put(t, counter);
+		}
 	}
 
 	File getTargetFile() {
@@ -40,6 +77,29 @@ public class NodeCountReport {
 		counters.get(nodeType).count(nodeString);
 	}
 
+	List<NodeCountReport> getChildren(){
+		return children;
+	}
+	
+	boolean isForDirectory(){
+		return isForDirectory;
+	}
+	
+	boolean isEmpty(){
+		for(NodeType t: NodeInfo.ALL_NODE_TYPES){
+			MapCounter counter = counters.get(t);
+			if(!counter.isEmpty()){
+				return false;
+			}
+		}
+		for(NodeCountReport child: children){
+			if(!child.isEmpty()){
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer();

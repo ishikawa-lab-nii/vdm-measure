@@ -1,5 +1,6 @@
 package space.fyufyu.vdm.nodecount;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -9,11 +10,11 @@ import java.util.Set;
  * @author f-ishikawa
  *
  */
-class MapCounter {
+public class MapCounter {
 
 	private HashMap<String, Integer> counterMap = new HashMap<String, Integer>();
 
-	void count(String key) {
+	public void count(String key) {
 		if (!counterMap.containsKey(key)) {
 			counterMap.put(key, 1);
 		} else {
@@ -21,7 +22,7 @@ class MapCounter {
 		}
 	}
 
-	void count(String key, int count) {
+	public void count(String key, int count) {
 		if (!counterMap.containsKey(key)) {
 			counterMap.put(key, count);
 		} else {
@@ -29,21 +30,41 @@ class MapCounter {
 		}
 	}
 
-	Set<String> keySet() {
+	public Set<String> keySet() {
 		return counterMap.keySet();
 	}
 
-	int getValue(String key) {
+	public int getValue(String key) {
 		if (counterMap.containsKey(key)) {
 			return counterMap.get(key);
 		} else {
 			return 0;
 		}
 	}
+	
+	public boolean isEmpty(){
+		return counterMap.isEmpty();
+	}
 
+	public void merge(MapCounter counter){
+		for(String key: counter.keySet()){
+			count(key, counter.getValue(key));
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return counterMap.toString();
+	}
+	
+	public static MapCounter merge(Collection<MapCounter> counters){
+		MapCounter ret = new MapCounter();
+		for(MapCounter counter: counters){
+			for(String key: counter.keySet()){
+				ret.count(key, counter.getValue(key));
+			}
+		}
+		return ret;
 	}
 
 }
