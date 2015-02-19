@@ -7,7 +7,7 @@ public class VDMPPFilenameFilter implements FilenameFilter {
 
 	private static VDMPPFilenameFilter singleton = new VDMPPFilenameFilter();
 	
-	private VDMPPFilenameFilter() {
+	protected VDMPPFilenameFilter() {
 	}
 	
 	@Override

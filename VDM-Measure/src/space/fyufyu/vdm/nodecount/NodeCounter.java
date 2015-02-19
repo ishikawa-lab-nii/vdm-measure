@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashSet;
@@ -18,7 +19,6 @@ import org.overture.parser.syntax.DefinitionReader;
 
 import space.fyufyu.vdm.util.NodeInfo;
 import space.fyufyu.vdm.util.NodeType;
-import space.fyufyu.vdm.util.VDMPPFilenameFilter;
 
 /**
  * Functions to count nodes of various kinds in AST and report in a a file
@@ -37,12 +37,15 @@ public class NodeCounter {
 	 * @param reportFilePrefix
 	 *            Prefix of the file path for the result files (results will
 	 *            make $PREFIX-DEF.csv, $PREFIX-EXP.csv, $PREFIX-STM.csv)
+	 * @param filenameFilter
+	 *            Filter to choose target files
 	 * @throws AnalysisException
 	 * @throws IOException
 	 */
 	public static void analyzeAndWrite(String targetFile,
-			String reportFilePrefix) throws AnalysisException, IOException {
-		NodeCountReport report = analyze(new File(targetFile));
+			String reportFilePrefix, FilenameFilter filenameFilter)
+			throws AnalysisException, IOException {
+		NodeCountReport report = analyze(new File(targetFile), filenameFilter);
 		if (report != null) {
 			for (NodeType t : NodeInfo.ALL_NODE_TYPES) {
 				write(report, reportFilePrefix, t);
@@ -56,10 +59,12 @@ public class NodeCounter {
 	 * @param targetFile
 	 *            Target file of node count (can be directory to run
 	 *            recursively)
-	 * @return Report (null if the file is not VDMPP file)
+	 * @param filenameFilter
+	 *            Filter to choose target files
+	 * @return Report (null if the file does not match the provided filter)
 	 * @throws AnalysisException
 	 */
-	public static NodeCountReport analyze(File targetFile)
+	public static NodeCountReport analyze(File targetFile, FilenameFilter filenameFilter)
 			throws AnalysisException, FileNotFoundException {
 		if (!targetFile.exists()) {
 			throw new FileNotFoundException(targetFile.getAbsolutePath());
@@ -69,14 +74,14 @@ public class NodeCounter {
 			File[] files = targetFile.listFiles();
 			LinkedList<NodeCountReport> children = new LinkedList<>();
 			for (File file : files) {
-				NodeCountReport r = analyze(new File(file.getAbsolutePath()));
+				NodeCountReport r = analyze(new File(file.getAbsolutePath()), filenameFilter);
 				if (r != null) {
 					children.add(r);
 				}
 			}
 			return new NodeCountReport(targetFile, children);
 		} else {
-			if (VDMPPFilenameFilter.isVDMPPFile(targetFile.getParentFile(),
+			if (filenameFilter.accept(targetFile.getParentFile(),
 					targetFile.getName())) {
 				LexTokenReader reader = new LexTokenReader(targetFile,
 						Dialect.VDM_PP);
@@ -152,7 +157,8 @@ public class NodeCounter {
 		if (report.getTargetFile().isDirectory()) {
 			wr.write("[DIR]");
 		}
-		wr.write(report.getTargetFile().getAbsolutePath().substring(prefixLength));
+		wr.write(report.getTargetFile().getAbsolutePath()
+				.substring(prefixLength));
 		wr.write(',');
 		MapCounter counter = report.getCounter(nodeType);
 		for (String val : values) {
