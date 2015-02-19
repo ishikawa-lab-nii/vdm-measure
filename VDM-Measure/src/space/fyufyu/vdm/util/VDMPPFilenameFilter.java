@@ -3,6 +3,11 @@ package space.fyufyu.vdm.util;
 import java.io.File;
 import java.io.FilenameFilter;
 
+/**
+ * FilenameFilter for VDMPP files
+ * @author f-ishikawa
+ *
+ */
 public class VDMPPFilenameFilter implements FilenameFilter {
 
 	private static VDMPPFilenameFilter singleton = new VDMPPFilenameFilter();
