@@ -138,18 +138,21 @@ public class NodeCounter {
 
 		// Each file
 		for (NodeCountReport child : report.getChildren()) {
-			writeSub(child, bw, values, nodeType);
+			writeSub(child, bw, values, nodeType, report.getTargetFile()
+					.getAbsolutePath().length());
 		}
 
 		bw.close();
 		System.out.println("Wrote the report to " + path);
 	}
 
-	private static void writeSub(NodeCountReport report, Writer wr, LinkedHashSet<String> values, NodeType nodeType) throws IOException {
-		if(report.getTargetFile().isDirectory()){
+	private static void writeSub(NodeCountReport report, Writer wr,
+			LinkedHashSet<String> values, NodeType nodeType, int prefixLength)
+			throws IOException {
+		if (report.getTargetFile().isDirectory()) {
 			wr.write("[DIR]");
 		}
-		wr.write(report.getTargetFile().getAbsolutePath());
+		wr.write(report.getTargetFile().getAbsolutePath().substring(prefixLength));
 		wr.write(',');
 		MapCounter counter = report.getCounter(nodeType);
 		for (String val : values) {
@@ -158,7 +161,7 @@ public class NodeCounter {
 		}
 		wr.write('\n');
 		for (NodeCountReport child : report.getChildren()) {
-			writeSub(child, wr, values, nodeType);
+			writeSub(child, wr, values, nodeType, prefixLength);
 		}
 	}
 
