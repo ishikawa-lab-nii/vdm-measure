@@ -8,8 +8,16 @@ package space.fyufyu.vdm.nodecount;
  *         name to a more meaningful name
  *
  */
-public interface NodeGrouper {
+public abstract class NodeGrouper {
 	
-	public String map(String nodeName);
+	public abstract String map(String nodeName);
+
+	public MapCounter apply(MapCounter counter) {
+		MapCounter ret = new MapCounter();
+		for (String key : counter.keySet()) {
+			ret.count(map(key), counter.getValue(key));
+		}
+		return ret;
+	}
 
 }

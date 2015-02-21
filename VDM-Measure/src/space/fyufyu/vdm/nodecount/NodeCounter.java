@@ -31,22 +31,33 @@ public class NodeCounter {
 	/**
 	 * Count nodes in VDM files and write the result in CSV files
 	 * 
-	 * @param targetFile
-	 *            Target file of node count (can be directory to run
-	 *            recursively)
-	 * @param reportFilePrefix
-	 *            Prefix of the file path for the result files (results will
-	 *            make $PREFIX-DEF.csv, $PREFIX-EXP.csv, $PREFIX-STM.csv)
-	 * @param filenameFilter
-	 *            Filter to choose target files
+	 * @param commands
+	 * @return Node count reports
 	 * @throws AnalysisException
 	 * @throws IOException
 	 */
-	public static void analyzeAndWrite(String targetFile,
-			String reportFilePrefix, FilenameFilter filenameFilter)
+	public static NodeCountReport[] analyzeAndWriteAll(
+			NodeCountCommand[] commands) throws AnalysisException, IOException {
+		LinkedList<NodeCountReport> reports = new LinkedList<NodeCountReport>();
+		for (int i = 0; i < commands.length; i++) {
+			reports.add(analyzeAndWrite(commands[i]));
+		}
+		return reports.toArray(new NodeCountReport[] {});
+	}
+
+	/**
+	 * Count nodes in VDM files and write the result in CSV files
+	 * 
+	 * @param command
+	 * @return Node count report
+	 * @throws AnalysisException
+	 * @throws IOException
+	 */
+	public static NodeCountReport analyzeAndWrite(NodeCountCommand command)
 			throws AnalysisException, IOException {
-		analyzeAndWrite(targetFile, reportFilePrefix, filenameFilter,
-				new DefaultNodeGrouper());
+		return analyzeAndWrite(command.targetFileName,
+				command.reportFilePrefix, command.filenameFilter,
+				command.grouper);
 	}
 
 	/**
@@ -62,10 +73,11 @@ public class NodeCounter {
 	 *            Filter to choose target files
 	 * @param grouper
 	 *            Mapping node name to a more meaningful/abstract name (group)
+	 * @return Node count report
 	 * @throws AnalysisException
 	 * @throws IOException
 	 */
-	public static void analyzeAndWrite(String targetFile,
+	private static NodeCountReport analyzeAndWrite(String targetFile,
 			String reportFilePrefix, FilenameFilter filenameFilter,
 			NodeGrouper grouper) throws AnalysisException, IOException {
 		NodeCountReport report = analyze(new File(targetFile), filenameFilter);
@@ -74,6 +86,7 @@ public class NodeCounter {
 				write(report, reportFilePrefix, t, grouper);
 			}
 		}
+		return report;
 	}
 
 	/**
@@ -87,7 +100,7 @@ public class NodeCounter {
 	 * @return Report (null if the file does not match the provided filter)
 	 * @throws AnalysisException
 	 */
-	public static NodeCountReport analyze(File targetFile,
+	private static NodeCountReport analyze(File targetFile,
 			FilenameFilter filenameFilter) throws AnalysisException,
 			FileNotFoundException {
 		if (!targetFile.exists()) {
@@ -132,6 +145,8 @@ public class NodeCounter {
 	 * @param nodeType
 	 *            Type of the nodes (DEF, EXP or STM)
 	 * @param grouper
+	 *            Function to define mapping from raw class names to meaningful
+	 *            names for node types
 	 * @throws IOException
 	 */
 	private static void write(NodeCountReport report, String reportFilePrefix,
@@ -151,13 +166,13 @@ public class NodeCounter {
 		for (String key : rootCounter.keySet()) {
 			values.add(grouper.map(key));
 		}
-		rootCounter = applyGrouper(rootCounter, grouper);
+		rootCounter = grouper.apply(rootCounter);
 
 		// Header row
 		bw.write(',');
 		for (String val : values) {
 			bw.write(val);
-			bw.write(',');
+			bw.write(",,");
 		}
 		bw.write('\n');
 
@@ -166,6 +181,8 @@ public class NodeCounter {
 		for (String val : values) {
 			int count = rootCounter.getValue(val);
 			bw.write(Integer.toString(count));
+			bw.write(',');
+			bw.write(String.format("%.3f", 100.0 * count / rootCounter.getSum()));
 			bw.write(',');
 		}
 		bw.write('\n');
@@ -189,24 +206,22 @@ public class NodeCounter {
 		wr.write(report.getTargetFile().getAbsolutePath()
 				.substring(prefixLength));
 		wr.write(',');
-		MapCounter counter = applyGrouper(report.getCounter(nodeType), grouper);
+		MapCounter counter = grouper.apply(report.getCounter(nodeType));
 		for (String val : values) {
-			wr.write(Integer.toString(counter.getValue(val)));
+			int count = counter.getValue(val);
+			wr.write(Integer.toString(count));
+			wr.write(',');
+			if (counter.getSum() == 0) {
+				wr.write("N/A");
+			} else {
+				wr.write(String.format("%.3f", 100.0 * count / counter.getSum()));
+			}
 			wr.write(',');
 		}
 		wr.write('\n');
 		for (NodeCountReport child : report.getChildren()) {
 			writeSub(child, wr, values, nodeType, prefixLength, grouper);
 		}
-	}
-
-	private static MapCounter applyGrouper(MapCounter counter,
-			NodeGrouper grouper) {
-		MapCounter ret = new MapCounter();
-		for (String key : counter.keySet()) {
-			ret.count(grouper.map(key), counter.getValue(key));
-		}
-		return ret;
 	}
 
 }

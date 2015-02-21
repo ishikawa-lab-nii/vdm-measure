@@ -67,7 +67,7 @@ public class NodeCountReport {
 		return targetFile;
 	}
 
-	MapCounter getCounter(NodeType nodeType) {
+	public MapCounter getCounter(NodeType nodeType) {
 		return counters.get(nodeType);
 	}
 
@@ -80,15 +80,15 @@ public class NodeCountReport {
 		counters.get(nodeType).count(nodeString);
 	}
 
-	List<NodeCountReport> getChildren() {
+	public List<NodeCountReport> getChildren() {
 		return children;
 	}
 
-	boolean isForDirectory() {
+	public boolean isForDirectory() {
 		return isForDirectory;
 	}
 
-	boolean isEmpty() {
+	public boolean isEmpty() {
 		for (NodeType t : NodeInfo.ALL_NODE_TYPES) {
 			MapCounter counter = counters.get(t);
 			if (!counter.isEmpty()) {

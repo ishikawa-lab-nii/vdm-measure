@@ -1,6 +1,6 @@
 package space.fyufyu.vdm.nodecount;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -9,11 +9,11 @@ import java.util.Map;
  * @author f-ishikawa
  *
  */
-public class DefaultNodeGrouper implements NodeGrouper {
+public class DefaultNodeGrouper extends NodeGrouper {
 
 	static Map<String, String> DEFAULT_GROUPING;
 	static {
-		DEFAULT_GROUPING = new HashMap<String, String>();
+		DEFAULT_GROUPING = new LinkedHashMap<String, String>();
 
 		// Definition nodes
 		DEFAULT_GROUPING.put("ATypeDefinition", "1. Type Def.");

@@ -14,12 +14,15 @@ public class MapCounter {
 
 	private HashMap<String, Integer> counterMap = new HashMap<String, Integer>();
 
+	private int sum;
+
 	public void count(String key) {
 		if (!counterMap.containsKey(key)) {
 			counterMap.put(key, 1);
 		} else {
 			counterMap.put(key, counterMap.get(key) + 1);
 		}
+		sum++;
 	}
 
 	public void count(String key, int count) {
@@ -28,6 +31,7 @@ public class MapCounter {
 		} else {
 			counterMap.put(key, counterMap.get(key) + count);
 		}
+		sum = sum + count;
 	}
 
 	public Set<String> keySet() {
@@ -41,26 +45,30 @@ public class MapCounter {
 			return 0;
 		}
 	}
+
+	public int getSum(){
+		return sum;
+	}
 	
-	public boolean isEmpty(){
+	public boolean isEmpty() {
 		return counterMap.isEmpty();
 	}
 
-	public void merge(MapCounter counter){
-		for(String key: counter.keySet()){
+	public void merge(MapCounter counter) {
+		for (String key : counter.keySet()) {
 			count(key, counter.getValue(key));
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return counterMap.toString();
 	}
-	
-	public static MapCounter merge(Collection<MapCounter> counters){
+
+	public static MapCounter merge(Collection<MapCounter> counters) {
 		MapCounter ret = new MapCounter();
-		for(MapCounter counter: counters){
-			for(String key: counter.keySet()){
+		for (MapCounter counter : counters) {
+			for (String key : counter.keySet()) {
 				ret.count(key, counter.getValue(key));
 			}
 		}
