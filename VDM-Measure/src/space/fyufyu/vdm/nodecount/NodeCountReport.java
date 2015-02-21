@@ -24,9 +24,9 @@ public class NodeCountReport {
 	private HashMap<NodeType, MapCounter> counters = new HashMap<NodeType, MapCounter>();
 
 	private List<NodeCountReport> children = new LinkedList<>();
-	
+
 	private boolean isForDirectory = false;
-	
+
 	/**
 	 * Constructor for a single file case
 	 * 
@@ -45,19 +45,18 @@ public class NodeCountReport {
 	 * @param targetFile
 	 * @param children
 	 */
-	NodeCountReport(File targetFile,
-			List<NodeCountReport> children) {
+	NodeCountReport(File targetFile, List<NodeCountReport> children) {
 		this.targetFile = targetFile;
-		for(NodeCountReport child: children){
-			if(!child.isEmpty()){
+		for (NodeCountReport child : children) {
+			if (!child.isEmpty()) {
 				this.children.add(child);
 			}
 		}
 		this.isForDirectory = true;
-		
+
 		for (NodeType t : NodeInfo.ALL_NODE_TYPES) {
 			MapCounter counter = new MapCounter();
-			for(NodeCountReport report: this.children){
+			for (NodeCountReport report : this.children) {
 				counter.merge(report.getCounter(t));
 			}
 			counters.put(t, counter);
@@ -74,32 +73,36 @@ public class NodeCountReport {
 
 	void count(NodeType nodeType, INode node) {
 		String nodeString = node.getClass().getSimpleName();
+		if (!DefaultNodeGrouper.DEFAULT_GROUPING.containsKey(nodeString)) {
+			System.err.println("Node not yet registered: " + nodeString + ":\n" + node.toString());
+			throw new RuntimeException();
+		}
 		counters.get(nodeType).count(nodeString);
 	}
 
-	List<NodeCountReport> getChildren(){
+	List<NodeCountReport> getChildren() {
 		return children;
 	}
-	
-	boolean isForDirectory(){
+
+	boolean isForDirectory() {
 		return isForDirectory;
 	}
-	
-	boolean isEmpty(){
-		for(NodeType t: NodeInfo.ALL_NODE_TYPES){
+
+	boolean isEmpty() {
+		for (NodeType t : NodeInfo.ALL_NODE_TYPES) {
 			MapCounter counter = counters.get(t);
-			if(!counter.isEmpty()){
+			if (!counter.isEmpty()) {
 				return false;
 			}
 		}
-		for(NodeCountReport child: children){
-			if(!child.isEmpty()){
+		for (NodeCountReport child : children) {
+			if (!child.isEmpty()) {
 				return false;
 			}
 		}
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer();
