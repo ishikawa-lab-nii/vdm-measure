@@ -157,16 +157,10 @@ public class NodeCounter {
 			f.getParentFile().mkdir();
 		}
 		BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-
-		// Counter to remember the count sum for all the target files
 		MapCounter rootCounter = report.getCounter(nodeType);
-
-		// TODO: define sorting
-		LinkedHashSet<String> values = new LinkedHashSet<String>();
-		for (String key : rootCounter.keySet()) {
-			values.add(grouper.map(key));
-		}
 		rootCounter = grouper.apply(rootCounter);
+
+		LinkedHashSet<String> values = new LinkedHashSet<String>(DefaultNodeGrouper.DEFAULT_GROUPING.get(nodeType).values());
 
 		// Header row
 		bw.write(',');

@@ -63,7 +63,7 @@ public class NodeCountReport {
 		}
 	}
 
-	File getTargetFile() {
+	public File getTargetFile() {
 		return targetFile;
 	}
 
@@ -73,7 +73,7 @@ public class NodeCountReport {
 
 	void count(NodeType nodeType, INode node) {
 		String nodeString = node.getClass().getSimpleName();
-		if (!DefaultNodeGrouper.DEFAULT_GROUPING.containsKey(nodeString)) {
+		if (!DefaultNodeGrouper.knownNodeClasses.contains(nodeString)) {
 			System.err.println("Node not yet registered: " + nodeString + ":\n" + node.toString());
 			throw new RuntimeException();
 		}
